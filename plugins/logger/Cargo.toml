@@ -1,0 +1,31 @@
+[package]
+name = "tauri-plugin-logger"
+version = "0.1.0"
+description = "Logger plugin for KKAPE Gearbox"
+authors = ["KKAPE Team"]
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+# Tauri 插件框架
+tauri = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# 日志相关
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# 错误处理
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# 时间处理
+chrono = { workspace = true }
+
+# 文件系统
+tokio = { workspace = true }
+
+[lib]
+name = "tauri_plugin_logger"
+crate-type = ["cdylib", "rlib"]

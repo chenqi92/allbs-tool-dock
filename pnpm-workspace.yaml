@@ -1,0 +1,15 @@
+packages:
+  - 'apps/*'
+  - 'ui/*'
+  - 'plugins/*'
+
+# 共享依赖配置
+shared-workspace-lockfile: true
+
+# 依赖提升配置
+hoist-pattern:
+  - '@types/*'
+  - 'typescript'
+  - 'vite'
+  - 'vue'
+  - '@vue/*'

@@ -1,0 +1,50 @@
+{
+  "name": "kkape-gearbox",
+  "version": "0.1.0",
+  "description": "A modern tool collection platform based on Rust + Tauri 2 + Vue3",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "dev": "node scripts/dev.js",
+    "build": "pnpm --filter shell build",
+    "test": "pnpm --recursive test",
+    "lint": "pnpm --recursive lint",
+    "format": "pnpm --recursive format",
+    "create:plugin": "node scripts/create-plugin.js",
+    "create:ui": "node scripts/create-ui.js",
+    "generate:icons": "node scripts/generate-icons.js",
+    "check:icons": "node scripts/check-icons.js",
+    "install:imagemagick": "node scripts/install-imagemagick.js",
+    "sync:version": "node scripts/sync-version.js",
+    "bump:patch": "node scripts/bump-version.js patch",
+    "bump:minor": "node scripts/bump-version.js minor",
+    "bump:major": "node scripts/bump-version.js major",
+    "bump:prerelease": "node scripts/bump-version.js prerelease",
+    "release": "node scripts/release.js"
+  },
+  "workspaces": [
+    "apps/*",
+    "ui/*",
+    "plugins/*"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "keywords": [
+    "tauri",
+    "rust",
+    "vue3",
+    "tools",
+    "desktop",
+    "cross-platform"
+  ],
+  "author": "KKAPE Team",
+  "license": "MIT"
+}

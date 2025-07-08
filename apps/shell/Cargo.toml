@@ -1,0 +1,61 @@
+[package]
+name = "kkape-gearbox"
+version = "0.1.0"
+description = "A modern tool collection platform"
+authors = ["KKAPE Team"]
+license = "MIT"
+repository = "https://github.com/kkape/gearbox"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { workspace = true, features = ["codegen"] }
+
+[dependencies]
+# Tauri 核心
+tauri = { workspace = true, features = [
+    "macos-private-api",
+    "protocol-asset",
+    "devtools"
+] }
+tauri-plugin-shell = { workspace = true }
+tauri-plugin-fs = { workspace = true }
+tauri-plugin-dialog = { workspace = true }
+tauri-plugin-notification = { workspace = true }
+tauri-plugin-updater = { workspace = true }
+tauri-plugin-window-state = { workspace = true }
+
+# 序列化
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# 异步运行时
+tokio = { workspace = true }
+
+# 日志
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# 错误处理
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# 时间处理
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# 插件系统
+# 这些插件将作为可选特性
+# tauri-plugin-logger = { path = "../../plugins/logger", optional = true }
+# tauri-plugin-influx-client = { path = "../../plugins/influx-client", optional = true }
+
+[features]
+default = []
+
+# 工具特性
+# tool-logger = ["tauri-plugin-logger"]
+# tool-influx = ["tauri-plugin-influx-client"]
+
+# 开发特性
+custom-protocol = ["tauri/custom-protocol"]
