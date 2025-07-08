@@ -165,7 +165,7 @@ jobs:
         pkg-config --exists webkit2gtk-4.0 && echo "✅ WebKit2GTK found" || echo "❌ WebKit2GTK missing"
     
     - name: Cache cargo
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/registry
@@ -358,7 +358,7 @@ jobs:
 
     - name: Upload build logs
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build-logs-${{ matrix.os }}-${{ matrix.target }}
         path: |
