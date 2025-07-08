@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import type { AppInfo, PluginInfo, AppSettings } from '../types'
+import { PluginStatus } from '../types'
 
 export const useAppStore = defineStore('app', () => {
   // 状态
@@ -28,7 +29,7 @@ export const useAppStore = defineStore('app', () => {
       description: '查看和管理应用日志',
       icon: 'i-carbon-document',
       category: '开发工具',
-      status: plugins.value.find(p => p.name === 'logger')?.status || 'Unloaded',
+      status: plugins.value.find(p => p.name === 'logger')?.status || PluginStatus.Unloaded,
       route: '/tool/logger'
     },
     {
@@ -37,7 +38,7 @@ export const useAppStore = defineStore('app', () => {
       description: '连接和查询 InfluxDB 数据库',
       icon: 'i-carbon-data-base',
       category: '数据库工具',
-      status: plugins.value.find(p => p.name === 'influx-client')?.status || 'Unloaded',
+      status: plugins.value.find(p => p.name === 'influx-client')?.status || PluginStatus.Unloaded,
       route: '/tool/influx-client'
     }
   ])

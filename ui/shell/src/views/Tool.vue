@@ -35,9 +35,23 @@
 
     <!-- 工具内容区 -->
     <main class="flex-1 overflow-hidden">
+      <!-- 工具加载中 -->
+      <div
+        v-if="toolInfo?.status === PluginStatus.Loading"
+        class="h-full flex-col-center p-8"
+      >
+        <div class="animate-spin i-carbon-circle-dash text-6xl text-primary-600 mb-4"></div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          工具加载中
+        </h2>
+        <p class="text-muted">
+          正在启动 {{ toolName }} 工具...
+        </p>
+      </div>
+
       <!-- 工具未启用状态 -->
       <div
-        v-if="!toolInfo || toolInfo.status !== 'Loaded'"
+        v-else-if="!toolInfo || toolInfo.status !== PluginStatus.Loaded"
         class="h-full flex-col-center p-8"
       >
         <div class="i-carbon-warning text-6xl text-yellow-500 mb-4"></div>
@@ -54,20 +68,6 @@
         >
           启用工具
         </button>
-      </div>
-
-      <!-- 工具加载中 -->
-      <div
-        v-else-if="toolInfo.status === 'Loading'"
-        class="h-full flex-col-center p-8"
-      >
-        <div class="animate-spin i-carbon-circle-dash text-6xl text-primary-600 mb-4"></div>
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          工具加载中
-        </h2>
-        <p class="text-muted">
-          正在启动 {{ toolName }} 工具...
-        </p>
       </div>
 
       <!-- 工具内容 -->
@@ -107,6 +107,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '../stores/app'
+import { PluginStatus } from '../types'
 import type { Component } from 'vue'
 
 const route = useRoute()

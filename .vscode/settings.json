@@ -1,0 +1,51 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml",
+    "./apps/shell/Cargo.toml",
+    "./plugins/logger/Cargo.toml"
+  ],
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.checkOnSave.command": "clippy",
+  "rust-analyzer.checkOnSave.allTargets": false,
+  
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  
+  "eslint.workingDirectories": [
+    "ui/shell"
+  ],
+  
+  "files.associations": {
+    "*.vue": "vue"
+  },
+  
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  
+  "emmet.includeLanguages": {
+    "vue": "html"
+  },
+  
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/target": true,
+    "**/dist": true,
+    "**/.git": true
+  },
+  
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/target": true,
+    "**/dist": true
+  },
+  
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js",
+    "*.vue": "${capture}.vue.d.ts",
+    "package.json": "package-lock.json,pnpm-lock.yaml,yarn.lock",
+    "Cargo.toml": "Cargo.lock"
+  }
+}

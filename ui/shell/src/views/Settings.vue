@@ -27,7 +27,7 @@
               <button
                 v-for="theme in themes"
                 :key="theme.value"
-                @click="appStore.settings.theme = theme.value"
+                @click="appStore.settings.theme = theme.value as 'light' | 'dark' | 'auto'"
                 class="p-3 rounded-lg border-2 transition-colors"
                 :class="appStore.settings.theme === theme.value 
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 

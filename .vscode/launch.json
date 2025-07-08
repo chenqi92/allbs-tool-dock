@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Tauri Development Debug",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/shell/target/debug/kkape-gearbox",
+      "args": [],
+      "cwd": "${workspaceFolder}/apps/shell",
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "cargo build"
+    },
+    {
+      "name": "Tauri Production Debug",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/shell/target/release/kkape-gearbox",
+      "args": [],
+      "cwd": "${workspaceFolder}/apps/shell",
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "cargo build --release"
+    }
+  ]
+}

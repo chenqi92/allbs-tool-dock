@@ -203,7 +203,31 @@ jobs:
         echo "📋 Available workspaces:"
         pnpm list --depth=0
 
+        echo "🔍 Checking Node.js and pnpm versions:"
+        node --version
+        pnpm --version
+
+        echo "🔍 Checking shell package:"
+        if [ -d "ui/shell" ]; then
+          echo "✅ ui/shell directory exists"
+          ls -la ui/shell/
+
+          echo "🔍 Checking package.json:"
+          if [ -f "ui/shell/package.json" ]; then
+            echo "✅ package.json exists"
+            cat ui/shell/package.json | jq '.name, .version, .scripts.build' 2>/dev/null || echo "Cannot parse package.json"
+          fi
+
+          echo "🔍 Checking dependencies:"
+          cd ui/shell
+          pnpm list --depth=0 2>/dev/null || echo "Cannot list dependencies"
+          cd ..
+        else
+          echo "❌ ui/shell directory missing"
+        fi
+
         echo "🔨 Building shell UI..."
+        set -e  # Exit on any error
         pnpm --filter shell build
 
         echo "✅ Frontend build completed"
@@ -211,10 +235,13 @@ jobs:
         if [ -d "ui/shell/dist" ]; then
           echo "✅ Frontend dist directory exists"
           ls -la ui/shell/dist/
+          echo "📊 Build size:"
+          du -sh ui/shell/dist/
         else
           echo "❌ Frontend dist directory missing"
           echo "📂 Checking alternative locations..."
           find . -name "dist" -type d 2>/dev/null || echo "No dist directories found"
+          exit 1
         fi
     
     - name: Build Tauri app
@@ -260,6 +287,7 @@ jobs:
         export RUST_BACKTRACE=1
 
         # 执行构建
+        set -e  # Exit on any error
         cargo tauri build --target ${{ matrix.target }} --verbose
 
         echo "✅ Tauri build completed"

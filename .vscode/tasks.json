@@ -1,0 +1,124 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cargo build",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build"],
+      "options": {
+        "cwd": "${workspaceFolder}/apps/shell"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$rustc"
+    },
+    {
+      "label": "cargo build --release",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "--release"],
+      "options": {
+        "cwd": "${workspaceFolder}/apps/shell"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$rustc"
+    },
+    {
+      "label": "cargo test",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$rustc"
+    },
+    {
+      "label": "tauri dev",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["tauri", "dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/apps/shell"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "isBackground": true,
+      "problemMatcher": "$rustc"
+    },
+    {
+      "label": "tauri build",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["tauri", "build"],
+      "options": {
+        "cwd": "${workspaceFolder}/apps/shell"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$rustc"
+    },
+    {
+      "label": "pnpm dev",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/ui/shell"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "isBackground": true
+    },
+    {
+      "label": "pnpm build",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["build"],
+      "options": {
+        "cwd": "${workspaceFolder}/ui/shell"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    }
+  ]
+}
