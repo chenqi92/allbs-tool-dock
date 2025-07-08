@@ -86,7 +86,9 @@ function createGitTag() {
 function pushToRemote() {
   console.log('\n📤 推送到远程仓库...')
   try {
-    execSync('git push origin main --tags', { stdio: 'inherit' })
+    // 获取当前分支名
+    const currentBranch = execSync('git branch --show-current', { encoding: 'utf8' }).trim()
+    execSync(`git push origin ${currentBranch} --tags`, { stdio: 'inherit' })
     console.log('✅ 推送完成')
     return true
   } catch {
