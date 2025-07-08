@@ -36,7 +36,8 @@ function checkGitStatus() {
 function runTests() {
   console.log('\n🧪 运行测试...')
   try {
-    execSync('pnpm test', { stdio: 'inherit', cwd: rootDir })
+    // 使用 CI 模式运行测试，避免监听模式
+    execSync('pnpm --filter shell test:ci', { stdio: 'inherit', cwd: rootDir })
     console.log('✅ 测试通过')
     return true
   } catch {

@@ -1,6 +1,6 @@
 [package]
 name = "kkape-gearbox"
-version = "0.1.6"
+version = "0.1.7"
 description = "A modern tool collection platform"
 authors = ["KKAPE Team"]
 license = "MIT"
