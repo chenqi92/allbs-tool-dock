@@ -1,6 +1,6 @@
 {
   "name": "kkape-gearbox",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A modern tool collection platform based on Rust + Tauri 2 + Vue3",
   "type": "module",
   "scripts": {
@@ -20,7 +20,6 @@
     "bump:minor": "node scripts/bump-version.js minor",
     "bump:major": "node scripts/bump-version.js major",
     "bump:prerelease": "node scripts/bump-version.js prerelease",
-
     "release": "node scripts/release.js"
   },
   "workspaces": [
