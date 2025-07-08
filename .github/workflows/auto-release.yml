@@ -87,26 +87,82 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: System Information
+      run: |
+        echo "🖥️ System Information for ${{ matrix.os }} (${{ matrix.target }})"
+        echo "=================================="
+        echo "OS: $(uname -a)"
+        echo "Architecture: $(uname -m)"
+        echo "CPU Info:"
+        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          lscpu | head -20
+        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          sysctl -n machdep.cpu.brand_string
+          sysctl -n hw.ncpu
+        elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+          wmic cpu get name
+        fi
+        echo "Memory:"
+        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          free -h
+        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}'
+        fi
+        echo "Disk Space:"
+        df -h
+        echo "=================================="
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
-    
+
     - name: Install pnpm
-      run: npm install -g pnpm
+      run: |
+        echo "🔧 Installing pnpm..."
+        npm install -g pnpm
+        echo "✅ pnpm version: $(pnpm --version)"
     
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: ${{ matrix.target }}
+
+    - name: Verify Rust installation
+      run: |
+        echo "🦀 Rust toolchain information:"
+        rustc --version
+        cargo --version
+        echo "🎯 Target: ${{ matrix.target }}"
+        rustup target list --installed | grep ${{ matrix.target }} || echo "❌ Target ${{ matrix.target }} not installed"
     
     - name: Install system dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+        echo "🐧 Installing Ubuntu system dependencies..."
+        echo "📦 Updating package list..."
+        sudo apt-get update -y
+        echo "📦 Installing required packages..."
+        sudo apt-get install -y \
+          libgtk-3-dev \
+          libwebkit2gtk-4.0-dev \
+          libappindicator3-dev \
+          librsvg2-dev \
+          patchelf \
+          build-essential \
+          curl \
+          wget \
+          file \
+          libssl-dev \
+          libayatana-appindicator3-dev
+        echo "✅ Ubuntu dependencies installed successfully"
+
+        # 验证关键库是否安装
+        echo "🔍 Verifying installed packages..."
+        pkg-config --exists gtk+-3.0 && echo "✅ GTK3 found" || echo "❌ GTK3 missing"
+        pkg-config --exists webkit2gtk-4.0 && echo "✅ WebKit2GTK found" || echo "❌ WebKit2GTK missing"
     
     - name: Cache cargo
       uses: actions/cache@v3
@@ -118,18 +174,199 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Install dependencies
-      run: pnpm install
+      run: |
+        echo "📦 Installing Node.js dependencies..."
+        pnpm install --frozen-lockfile
+        echo "✅ Dependencies installed successfully"
+        echo "📋 Workspace info:"
+        pnpm list --depth=0
     
     - name: Generate icons
-      run: pnpm generate:icons
+      run: |
+        echo "🎨 Generating application icons..."
+        pnpm generate:icons
+        echo "✅ Icons generated successfully"
+
+        # 验证图标文件
+        echo "🔍 Verifying generated icons..."
+        if [ -d "apps/shell/src-tauri/icons" ]; then
+          ls -la apps/shell/src-tauri/icons/
+          echo "✅ Icon directory exists"
+        else
+          echo "❌ Icon directory missing"
+        fi
     
     - name: Build frontend
-      run: pnpm --filter shell build
+      run: |
+        echo "🏗️ Building frontend application..."
+        echo "📂 Current directory: $(pwd)"
+        echo "📋 Available workspaces:"
+        pnpm list --depth=0
+
+        echo "🔨 Building shell UI..."
+        pnpm --filter shell build
+
+        echo "✅ Frontend build completed"
+        echo "🔍 Verifying build output..."
+        if [ -d "ui/shell/dist" ]; then
+          echo "✅ Frontend dist directory exists"
+          ls -la ui/shell/dist/
+        else
+          echo "❌ Frontend dist directory missing"
+          echo "📂 Checking alternative locations..."
+          find . -name "dist" -type d 2>/dev/null || echo "No dist directories found"
+        fi
     
     - name: Build Tauri app
       run: |
+        echo "🦀 Building Tauri application for ${{ matrix.target }}..."
+        echo "📂 Current directory: $(pwd)"
+
         cd apps/shell
-        cargo tauri build --target ${{ matrix.target }}
+        echo "📂 Changed to: $(pwd)"
+
+        # 显示 Tauri 配置信息
+        echo "🔍 Tauri configuration:"
+        if [ -f "tauri.conf.json" ]; then
+          echo "✅ tauri.conf.json exists"
+          cat tauri.conf.json | jq '.version // "version not found"' 2>/dev/null || echo "Cannot parse version from tauri.conf.json"
+        else
+          echo "❌ tauri.conf.json missing"
+        fi
+
+        # 显示 Cargo 信息
+        echo "🔍 Cargo configuration:"
+        if [ -f "Cargo.toml" ]; then
+          echo "✅ Cargo.toml exists"
+          grep "^version" Cargo.toml || echo "Version not found in Cargo.toml"
+        else
+          echo "❌ Cargo.toml missing"
+        fi
+
+        # 检查 Rust 源码目录
+        if [ -d "src" ]; then
+          echo "✅ src directory exists"
+          ls -la src/
+        else
+          echo "❌ src directory missing"
+        fi
+
+        echo "🔨 Starting Tauri build..."
+        echo "🎯 Target: ${{ matrix.target }}"
+        echo "🖥️ OS: ${{ matrix.os }}"
+
+        # 设置详细日志
+        export RUST_LOG=debug
+        export RUST_BACKTRACE=1
+
+        # 执行构建
+        cargo tauri build --target ${{ matrix.target }} --verbose
+
+        echo "✅ Tauri build completed"
+
+        # 验证构建产物
+        echo "🔍 Verifying build artifacts..."
+        if [ -d "target/${{ matrix.target }}/release" ]; then
+          echo "✅ Release directory exists"
+          ls -la "target/${{ matrix.target }}/release/"
+
+          # 查找可执行文件
+          echo "🔍 Looking for executable..."
+          find "target/${{ matrix.target }}/release" -name "${{ matrix.artifact_name }}" -type f 2>/dev/null || echo "❌ Executable not found"
+
+          # 查找 bundle 目录
+          if [ -d "target/${{ matrix.target }}/release/bundle" ]; then
+            echo "✅ Bundle directory exists"
+            find "target/${{ matrix.target }}/release/bundle" -type f 2>/dev/null | head -10
+          else
+            echo "❌ Bundle directory missing"
+          fi
+        else
+          echo "❌ Release directory missing"
+          echo "📂 Available directories in target:"
+          ls -la "target/" 2>/dev/null || echo "Target directory not found"
+        fi
+
+    - name: Debug on failure
+      if: failure()
+      run: |
+        echo "🚨 Build failed! Collecting debug information..."
+        echo "=================================="
+
+        # 显示错误日志
+        echo "📋 Recent Cargo build logs:"
+        if [ -f "apps/shell/target/${{ matrix.target }}/release/build.log" ]; then
+          tail -50 "apps/shell/target/${{ matrix.target }}/release/build.log"
+        fi
+
+        # 查找构建日志
+        echo "🔍 Looking for build logs..."
+        find apps/shell/target -name "*.log" -type f 2>/dev/null | head -5 | while read logfile; do
+          echo "📄 Log file: $logfile"
+          tail -20 "$logfile"
+        done
+
+        # 显示 Cargo 缓存状态
+        echo "📦 Cargo cache status:"
+        ls -la ~/.cargo/ 2>/dev/null || echo "Cargo cache not found"
+
+        # 显示目标架构信息
+        echo "🎯 Target architecture info:"
+        rustup target list --installed
+
+        # 显示环境变量
+        echo "🌍 Environment variables:"
+        env | grep -E "(RUST|CARGO|TARGET)" | sort
+
+        # 显示文件系统状态
+        echo "📂 File system status:"
+        pwd
+        ls -la
+
+        if [ -d "apps/shell" ]; then
+          echo "📂 apps/shell contents:"
+          ls -la apps/shell/
+
+          if [ -d "apps/shell/src" ]; then
+            echo "📂 src contents:"
+            ls -la apps/shell/src/
+          fi
+
+          if [ -d "apps/shell/target" ]; then
+            echo "📂 target contents:"
+            ls -la apps/shell/target/
+          fi
+        fi
+
+        # macOS 特定调试
+        if [ "${{ matrix.os }}" = "macos-latest" ]; then
+          echo "🍎 macOS specific debug info:"
+          xcode-select --print-path
+          xcrun --show-sdk-path
+          echo "Available SDKs:"
+          xcodebuild -showsdks 2>/dev/null || echo "Cannot show SDKs"
+        fi
+
+        # Ubuntu 特定调试
+        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          echo "🐧 Ubuntu specific debug info:"
+          echo "Installed packages:"
+          dpkg -l | grep -E "(gtk|webkit|appindicator)" || echo "No relevant packages found"
+          echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
+          pkg-config --list-all | grep -E "(gtk|webkit)" || echo "No relevant pkg-config files"
+        fi
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-logs-${{ matrix.os }}-${{ matrix.target }}
+        path: |
+          apps/shell/target/${{ matrix.target }}/release/build/
+          ~/.cargo/registry/cache/
+          apps/shell/Cargo.lock
+          apps/shell/target/${{ matrix.target }}/release/deps/
+        retention-days: 7
     
     - name: Generate changelog
       id: changelog
@@ -153,5 +390,5 @@ jobs:
         make_latest: true
         generate_release_notes: true
         files: |
-          apps/shell/src-tauri/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-          apps/shell/src-tauri/target/${{ matrix.target }}/release/bundle/**/*
+          apps/shell/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          apps/shell/target/${{ matrix.target }}/release/bundle/**/*
