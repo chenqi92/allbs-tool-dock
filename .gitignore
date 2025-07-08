@@ -205,3 +205,8 @@ config.local.*
 secrets/
 .secrets
 api-keys.json
+
+# ===== Scripts =====
+# Test scripts (temporary development files)
+scripts/test-*.js
+scripts/check-*.js
