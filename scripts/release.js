@@ -58,26 +58,25 @@ function syncVersions() {
   }
 }
 
-// 创建 Git 标签
-function createGitTag() {
-  console.log('\n🏷️  创建 Git 标签...')
+// 提交版本变更
+function commitVersionChanges() {
+  console.log('\n📝 提交版本变更...')
   try {
-    const tagName = `v${version}`
-    
-    // 检查标签是否已存在
+    // 检查是否有变更
     try {
-      execSync(`git rev-parse ${tagName}`, { stdio: 'ignore' })
-      console.log(`⚠️  标签 ${tagName} 已存在`)
-      return false
+      execSync('git diff --quiet', { stdio: 'ignore' })
+      console.log('📋 没有检测到变更')
+      return true
     } catch {
-      // 标签不存在，可以创建
+      // 有变更，需要提交
     }
-    
-    execSync(`git tag ${tagName}`, { stdio: 'inherit' })
-    console.log(`✅ 创建标签: ${tagName}`)
+
+    execSync('git add .', { stdio: 'inherit' })
+    execSync(`git commit -m "chore: bump version to ${version}"`, { stdio: 'inherit' })
+    console.log(`✅ 已提交版本变更: ${version}`)
     return true
   } catch {
-    console.log('❌ 创建标签失败')
+    console.log('❌ 提交版本变更失败')
     return false
   }
 }
@@ -88,8 +87,9 @@ function pushToRemote() {
   try {
     // 获取当前分支名
     const currentBranch = execSync('git branch --show-current', { encoding: 'utf8' }).trim()
-    execSync(`git push origin ${currentBranch} --tags`, { stdio: 'inherit' })
+    execSync(`git push origin ${currentBranch}`, { stdio: 'inherit' })
     console.log('✅ 推送完成')
+    console.log('🤖 GitHub Actions 将自动检测版本变更并创建发布')
     return true
   } catch {
     console.log('❌ 推送失败')
@@ -103,21 +103,25 @@ async function main() {
     { name: '检查 Git 状态', fn: checkGitStatus },
     { name: '运行测试', fn: runTests },
     { name: '同步版本', fn: syncVersions },
-    { name: '创建标签', fn: createGitTag },
+    { name: '提交版本变更', fn: commitVersionChanges },
     { name: '推送到远程', fn: pushToRemote }
   ]
-  
+
   for (const step of steps) {
     if (!step.fn()) {
       console.log(`\n❌ 发布失败: ${step.name}`)
       process.exit(1)
     }
   }
-  
+
   console.log('\n🎉 发布流程完成！')
-  console.log(`📋 版本 ${version} 已发布`)
-  console.log('🔗 GitHub Actions 将自动构建和发布到 Releases')
-  console.log('   查看进度: https://github.com/your-repo/actions')
+  console.log(`📋 版本 ${version} 已推送到远程`)
+  console.log('🤖 GitHub Actions 将自动检测版本变更并：')
+  console.log('   1. 创建 Git 标签')
+  console.log('   2. 构建多平台应用包')
+  console.log('   3. 创建 GitHub Release')
+  console.log('   4. 上传构建产物')
+  console.log('\n🔗 查看构建进度: https://github.com/your-repo/actions')
 }
 
 main().catch(console.error)

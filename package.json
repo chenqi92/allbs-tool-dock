@@ -22,6 +22,7 @@
     "bump:prerelease": "node scripts/bump-version.js prerelease",
     "check:release": "node scripts/check-release.js",
     "test:release": "node scripts/test-release.js",
+    "test:auto-release": "node scripts/test-auto-release.js",
     "release": "node scripts/release.js"
   },
   "workspaces": [

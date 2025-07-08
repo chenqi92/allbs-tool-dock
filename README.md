@@ -89,10 +89,11 @@ pnpm test             # 运行测试
 pnpm create:plugin    # 创建新插件
 pnpm create:ui        # 创建插件 UI
 
-# 版本管理
-pnpm bump:patch       # 升级补丁版本
-pnpm bump:minor       # 升级次版本
-pnpm release          # 发布新版本
+# 版本管理和自动发布
+pnpm bump:patch       # 升级补丁版本 (0.1.0 -> 0.1.1)
+pnpm bump:minor       # 升级次版本 (0.1.0 -> 0.2.0)
+pnpm bump:major       # 升级主版本 (0.1.0 -> 1.0.0)
+pnpm release          # 自动发布 (推送后 GitHub Actions 自动构建)
 ```
 
 ## 📦 插件开发
@@ -121,6 +122,30 @@ pnpm create:ui <plugin-name>
 - 响应式布局
 - 暗黑模式支持
 - 动画效果
+
+## 🚀 自动化发布
+
+项目支持基于版本变更的自动化发布流程：
+
+### 快速发布
+```bash
+# 1. 升级版本
+pnpm bump:patch  # 或 minor/major
+
+# 2. 编辑 CHANGELOG.md 添加变更内容
+
+# 3. 一键发布
+pnpm release
+```
+
+### 自动化流程
+当 `package.json` 版本变更推送到 GitHub 时，会自动：
+- 🏷️ 创建 Git 标签
+- 🔨 构建多平台应用包 (Windows/macOS/Linux)
+- 📦 创建 GitHub Release
+- ⬆️ 上传所有构建产物
+
+详细说明请参考 [自动化发布文档](docs/AUTO_RELEASE.md)
 
 ## 📄 许可证
 

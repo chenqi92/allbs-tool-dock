@@ -1,0 +1,185 @@
+name: Pre-release
+
+on:
+  push:
+    branches:
+      - develop
+      - beta
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check-version:
+    name: Check Version
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.version_check.outputs.should_release }}
+      version: ${{ steps.version_check.outputs.version }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check if version changed
+      id: version_check
+      run: |
+        # 获取当前版本
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "Current version: $CURRENT_VERSION"
+        
+        # 检查是否为预发布版本
+        if [[ "$CURRENT_VERSION" == *"beta"* ]] || [[ "$CURRENT_VERSION" == *"alpha"* ]] || [[ "$CURRENT_VERSION" == *"rc"* ]]; then
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Pre-release version detected: $CURRENT_VERSION"
+        else
+          echo "should_release=false" >> $GITHUB_OUTPUT
+          echo "Not a pre-release version: $CURRENT_VERSION"
+        fi
+
+  build-prerelease:
+    name: Build Pre-release
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: kkape-gearbox
+            asset_name: kkape-gearbox-linux-x86_64-beta
+          
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: kkape-gearbox.exe
+            asset_name: kkape-gearbox-windows-x86_64-beta.exe
+          
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: kkape-gearbox
+            asset_name: kkape-gearbox-macos-x86_64-beta
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install pnpm
+      run: npm install -g pnpm
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+    
+    - name: Install system dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+    
+    - name: Cache cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.target }}-cargo-prerelease-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Generate icons
+      run: pnpm generate:icons
+    
+    - name: Build frontend
+      run: pnpm --filter shell build
+    
+    - name: Build Tauri app
+      run: |
+        cd apps/shell
+        cargo tauri build --target ${{ matrix.target }}
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.asset_name }}
+        path: apps/shell/src-tauri/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+        retention-days: 7
+
+  create-prerelease:
+    name: Create Pre-release
+    needs: [check-version, build-prerelease]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Create pre-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ needs.check-version.outputs.version }}
+        release_name: KKAPE Gearbox v${{ needs.check-version.outputs.version }} (Pre-release)
+        body: |
+          🚧 **这是一个预发布版本，仅用于测试目的**
+          
+          ## ⚠️ 注意事项
+          - 此版本可能包含未完成的功能
+          - 可能存在已知或未知的 bug
+          - 不建议在生产环境中使用
+          - 数据可能不兼容正式版本
+          
+          ## 🧪 测试内容
+          请重点测试以下功能：
+          - [ ] 基本应用启动和界面
+          - [ ] 插件加载和卸载
+          - [ ] 核心功能正常工作
+          - [ ] 性能和稳定性
+          
+          ## 🐛 反馈问题
+          如发现问题，请在 [Issues](https://github.com/${{ github.repository }}/issues) 中报告，并标注版本号 `v${{ needs.check-version.outputs.version }}`。
+          
+          ## 📦 下载
+          选择适合你系统的版本下载测试。
+        draft: false
+        prerelease: true
+    
+    - name: Upload release assets
+      run: |
+        # 这里可以添加上传逻辑，或者使用其他 action
+        echo "Pre-release created successfully"
+
+  notify-testers:
+    name: Notify Testers
+    needs: [check-version, create-prerelease]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Notify Discord/Slack (Optional)
+      run: |
+        echo "🚧 Pre-release v${{ needs.check-version.outputs.version }} is ready for testing!"
+        echo "Download: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-version.outputs.version }}"
+        # 这里可以添加 Discord/Slack 通知逻辑
