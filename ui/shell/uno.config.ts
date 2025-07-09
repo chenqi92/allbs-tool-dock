@@ -10,6 +10,22 @@ import {
 } from 'unocss'
 
 export default defineConfig({
+  rules: [
+    // Custom line-clamp rules
+    ['line-clamp-2', {
+      'overflow': 'hidden',
+      'display': '-webkit-box',
+      '-webkit-line-clamp': '2',
+      '-webkit-box-orient': 'vertical'
+    }],
+    ['line-clamp-3', {
+      'overflow': 'hidden',
+      'display': '-webkit-box',
+      '-webkit-line-clamp': '3',
+      '-webkit-box-orient': 'vertical'
+    }]
+  ],
+
   shortcuts: [
     // 布局相关
     ['flex-center', 'flex items-center justify-center'],
@@ -57,15 +73,13 @@ export default defineConfig({
     ['toolbar-group', 'flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600'],
 
     // 导航样式
-    ['nav-item', 'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-700/80 transition-all duration-200 group'],
+    ['nav-item', 'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-700/80 transition-all duration-200'],
     ['nav-item-active', 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 text-primary-700 dark:text-primary-300 shadow-soft'],
 
     // 工具卡片样式
     ['tool-card', 'card-hover p-6 cursor-pointer flex flex-col h-full min-h-48 relative overflow-hidden'],
 
     // 实用样式
-    ['line-clamp-2', 'overflow-hidden display--webkit-box -webkit-line-clamp-2 -webkit-box-orient-vertical'],
-    ['line-clamp-3', 'overflow-hidden display--webkit-box -webkit-line-clamp-3 -webkit-box-orient-vertical'],
     ['bg-grid-pattern', 'bg-[url("data:image/svg+xml,%3csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cg fill=\'none\' fill-rule=\'evenodd\'%3e%3cg fill=\'%23000000\' fill-opacity=\'0.1\'%3e%3ccircle cx=\'7\' cy=\'7\' r=\'1\'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e")]'],
 
     // 动画

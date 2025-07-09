@@ -8,7 +8,12 @@ export default defineConfig({
     vue(),
     UnoCSS()
   ],
-  
+
+  server: {
+    port: 5174,
+    strictPort: true
+  },
+
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

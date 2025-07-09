@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, markRaw } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '../stores/app'
 import { PluginStatus } from '../types'
@@ -168,7 +168,7 @@ async function loadToolComponent() {
     const loader = toolComponents[toolName.value]
     if (loader) {
       const module = await loader()
-      toolComponent.value = module.default
+      toolComponent.value = markRaw(module.default)
     } else {
       console.warn(`Tool component not found for ${toolName.value}`)
       toolComponent.value = null
