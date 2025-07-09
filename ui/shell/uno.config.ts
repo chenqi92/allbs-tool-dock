@@ -80,7 +80,6 @@ export default defineConfig({
     ['tool-card', 'card-hover p-6 cursor-pointer flex flex-col h-full min-h-48 relative overflow-hidden'],
 
     // 实用样式
-    ['bg-grid-pattern', 'bg-[url("data:image/svg+xml,%3csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cg fill=\'none\' fill-rule=\'evenodd\'%3e%3cg fill=\'%23000000\' fill-opacity=\'0.1\'%3e%3ccircle cx=\'7\' cy=\'7\' r=\'1\'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e")]'],
 
     // 动画
     ['animate-fade-in', 'animate-duration-300 animate-ease-out animate-fade-in'],

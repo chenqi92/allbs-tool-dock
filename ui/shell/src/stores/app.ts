@@ -36,7 +36,7 @@ export const useAppStore = defineStore('app', () => {
       id: 'tcp-tool',
       name: 'TCP 工具',
       description: '专业的TCP客户端/服务端调试工具',
-      icon: 'i-carbon-network-3',
+      icon: 'i-carbon-network-1',
       category: '网络工具',
       status: plugins.value.find(p => p.name === 'tcp-tool')?.status || PluginStatus.Unloaded,
       route: '/tool/tcp-tool'
@@ -54,7 +54,7 @@ export const useAppStore = defineStore('app', () => {
       id: 'base64-tool',
       name: 'Base64 工具',
       description: 'Base64编码解码，支持文本和文件',
-      icon: 'i-carbon-transform',
+      icon: 'i-carbon-data-1',
       category: '编码工具',
       status: plugins.value.find(p => p.name === 'base64-tool')?.status || PluginStatus.Unloaded,
       route: '/tool/base64-tool'
@@ -63,7 +63,7 @@ export const useAppStore = defineStore('app', () => {
       id: 'hash-tool',
       name: '哈希计算',
       description: 'MD5、SHA1、SHA256等哈希值计算',
-      icon: 'i-carbon-security',
+      icon: 'i-carbon-locked',
       category: '安全工具',
       status: plugins.value.find(p => p.name === 'hash-tool')?.status || PluginStatus.Unloaded,
       route: '/tool/hash-tool'
