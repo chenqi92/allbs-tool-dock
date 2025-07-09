@@ -440,4 +440,3 @@ function toDisplayName(str) {
 // 获取命令行参数
 const toolName = process.argv[2]
 createUI(toolName)
-`

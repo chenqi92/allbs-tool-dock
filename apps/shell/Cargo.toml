@@ -47,15 +47,33 @@ uuid = { workspace = true }
 
 # 插件系统
 # 这些插件将作为可选特性
-# tauri-plugin-logger = { path = "../../plugins/logger", optional = true }
-# tauri-plugin-influx-client = { path = "../../plugins/influx-client", optional = true }
+tauri-plugin-logger = { path = "../../plugins/logger", optional = true }
+tauri-plugin-tcp-tool = { path = "../../plugins/tcp-tool", optional = true }
+tauri-plugin-json-formatter = { path = "../../plugins/json-formatter", optional = true }
+tauri-plugin-base64-tool = { path = "../../plugins/base64-tool", optional = true }
+tauri-plugin-hash-tool = { path = "../../plugins/hash-tool", optional = true }
+tauri-plugin-timestamp-tool = { path = "../../plugins/timestamp-tool", optional = true }
+tauri-plugin-regex-tool = { path = "../../plugins/regex-tool", optional = true }
 
 [features]
-default = []
+default = [
+  "tool-logger",
+  "tool-tcp-tool",
+  "tool-json-formatter",
+  "tool-base64-tool",
+  "tool-hash-tool",
+  "tool-timestamp-tool",
+  "tool-regex-tool"
+]
 
 # 工具特性
-# tool-logger = ["tauri-plugin-logger"]
-# tool-influx = ["tauri-plugin-influx-client"]
+tool-logger = ["tauri-plugin-logger"]
+tool-tcp-tool = ["tauri-plugin-tcp-tool"]
+tool-json-formatter = ["tauri-plugin-json-formatter"]
+tool-base64-tool = ["tauri-plugin-base64-tool"]
+tool-hash-tool = ["tauri-plugin-hash-tool"]
+tool-timestamp-tool = ["tauri-plugin-timestamp-tool"]
+tool-regex-tool = ["tauri-plugin-regex-tool"]
 
 # 开发特性
 custom-protocol = ["tauri/custom-protocol"]

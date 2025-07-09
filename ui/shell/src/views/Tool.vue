@@ -154,11 +154,27 @@ async function enableTool() {
 
 async function loadToolComponent() {
   try {
-    // 动态导入工具组件
-    const module = await import(`../components/tools/${toolName.value}.vue`)
-    toolComponent.value = module.default
+    // 使用静态导入映射来避免动态导入路径问题
+    const toolComponents: Record<string, () => Promise<any>> = {
+      'tcp-tool': () => import('../components/tools/tcp-tool.vue'),
+      'json-formatter': () => import('../components/tools/json-formatter.vue'),
+      'base64-tool': () => import('../components/tools/base64-tool.vue'),
+      'hash-tool': () => import('../components/tools/hash-tool.vue'),
+      'timestamp-tool': () => import('../components/tools/timestamp-tool.vue'),
+      'regex-tool': () => import('../components/tools/regex-tool.vue'),
+      'logger': () => import('../components/tools/logger.vue'),
+    }
+
+    const loader = toolComponents[toolName.value]
+    if (loader) {
+      const module = await loader()
+      toolComponent.value = module.default
+    } else {
+      console.warn(`Tool component not found for ${toolName.value}`)
+      toolComponent.value = null
+    }
   } catch (error) {
-    console.warn(`Tool component not found for ${toolName.value}:`, error)
+    console.warn(`Failed to load tool component for ${toolName.value}:`, error)
     toolComponent.value = null
   }
 }

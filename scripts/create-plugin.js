@@ -161,4 +161,3 @@ function toCamelCase(str) {
 // 获取命令行参数
 const pluginName = process.argv[2]
 createPlugin(pluginName)
-`

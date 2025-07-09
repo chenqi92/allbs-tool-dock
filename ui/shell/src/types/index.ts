@@ -2,6 +2,7 @@ export interface AppInfo {
   name: string
   version: string
   description: string
+  author?: string
 }
 
 export enum PluginStatus {
@@ -17,8 +18,9 @@ export interface PluginInfo {
   name: string
   version: string
   description: string
-  status: PluginStatus
-  features: string[]
+  status: PluginStatus | string
+  enabled: boolean
+  features?: string[]
 }
 
 export interface ToolCard {

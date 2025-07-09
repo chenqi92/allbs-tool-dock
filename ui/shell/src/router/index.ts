@@ -32,5 +32,21 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       title: '工具'
     }
+  },
+  {
+    path: '/style-demo',
+    name: 'StyleDemo',
+    component: () => import('../views/StyleDemo.vue'),
+    meta: {
+      title: '样式演示'
+    }
+  },
+  {
+    path: '/debug',
+    name: 'DebugInfo',
+    component: () => import('../views/DebugInfo.vue'),
+    meta: {
+      title: '调试信息'
+    }
   }
 ]
