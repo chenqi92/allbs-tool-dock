@@ -1,0 +1,134 @@
+name: Test Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [test-build]
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  test-build:
+    name: Test Build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 只测试主要平台
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: kkape-gearbox
+            platform: linux-x64
+          
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: kkape-gearbox.exe
+            platform: windows-x64
+          
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: kkape-gearbox
+            platform: macos-x64
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install pnpm
+      run: |
+        echo "🔧 Installing pnpm..."
+        npm install -g pnpm
+        echo "✅ pnpm version: $(pnpm --version)"
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+    
+    - name: Install system dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        echo "🐧 Installing Ubuntu system dependencies..."
+        sudo apt-get update -y
+        sudo apt-get install -y \
+          libgtk-3-dev \
+          libwebkit2gtk-4.0-dev \
+          libappindicator3-dev \
+          librsvg2-dev \
+          patchelf \
+          build-essential \
+          libssl-dev \
+          libayatana-appindicator3-dev
+    
+    - name: Install dependencies
+      run: |
+        echo "📦 Installing Node.js dependencies..."
+        pnpm install --frozen-lockfile
+        echo "✅ Dependencies installed successfully"
+    
+    - name: Generate icons
+      run: |
+        echo "🎨 Generating application icons..."
+        pnpm generate:icons
+        echo "✅ Icons generated successfully"
+    
+    - name: Build frontend
+      run: |
+        echo "🏗️ Building frontend application..."
+        pnpm --filter shell build
+        echo "✅ Frontend build completed"
+    
+    - name: Build Tauri app
+      run: |
+        echo "🦀 Building Tauri application for ${{ matrix.target }}..."
+        cd apps/shell
+        cargo tauri build --target ${{ matrix.target }} --verbose
+        echo "✅ Tauri build completed"
+    
+    - name: Verify build artifacts
+      run: |
+        echo "🔍 Verifying build artifacts..."
+        cd apps/shell
+        if [ -d "target/${{ matrix.target }}/release" ]; then
+          echo "✅ Release directory exists"
+          ls -la "target/${{ matrix.target }}/release/"
+          
+          if [ -f "target/${{ matrix.target }}/release/${{ matrix.artifact_name }}" ]; then
+            echo "✅ Executable found: ${{ matrix.artifact_name }}"
+            ls -lh "target/${{ matrix.target }}/release/${{ matrix.artifact_name }}"
+          else
+            echo "❌ Executable not found"
+            exit 1
+          fi
+          
+          if [ -d "target/${{ matrix.target }}/release/bundle" ]; then
+            echo "✅ Bundle directory exists"
+            find "target/${{ matrix.target }}/release/bundle" -type f | head -5
+          else
+            echo "⚠️  Bundle directory missing"
+          fi
+        else
+          echo "❌ Release directory missing"
+          exit 1
+        fi
+    
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-build-${{ matrix.platform }}
+        path: |
+          apps/shell/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          apps/shell/target/${{ matrix.target }}/release/bundle/**/*
+        retention-days: 1

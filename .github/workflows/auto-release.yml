@@ -66,21 +66,38 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux builds
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: kkape-gearbox
-          
+            platform: linux-x64
+
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact_name: kkape-gearbox
+            platform: linux-arm64
+
+          # Windows builds
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact_name: kkape-gearbox.exe
-          
+            platform: windows-x64
+
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            artifact_name: kkape-gearbox.exe
+            platform: windows-arm64
+
+          # macOS builds
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: kkape-gearbox
-          
+            platform: macos-x64
+
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: kkape-gearbox
+            platform: macos-arm64
     
     runs-on: ${{ matrix.os }}
     
@@ -141,28 +158,52 @@ jobs:
     - name: Install system dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        echo "🐧 Installing Ubuntu system dependencies..."
+        echo "🐧 Installing Ubuntu system dependencies for ${{ matrix.target }}..."
         echo "📦 Updating package list..."
         sudo apt-get update -y
-        echo "📦 Installing required packages..."
+
+        # 基础依赖
+        echo "📦 Installing base packages..."
         sudo apt-get install -y \
-          libgtk-3-dev \
-          libwebkit2gtk-4.0-dev \
-          libappindicator3-dev \
-          librsvg2-dev \
-          patchelf \
           build-essential \
           curl \
           wget \
           file \
           libssl-dev \
-          libayatana-appindicator3-dev
+          pkg-config
+
+        # 根据目标架构安装不同的依赖
+        if [ "${{ matrix.target }}" = "x86_64-unknown-linux-gnu" ]; then
+          echo "📦 Installing x86_64 dependencies..."
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.0-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libayatana-appindicator3-dev
+        elif [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+          echo "📦 Installing ARM64 cross-compilation dependencies..."
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu \
+            libc6-dev-arm64-cross
+
+          # 设置交叉编译环境变量
+          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+          echo "AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+        fi
+
         echo "✅ Ubuntu dependencies installed successfully"
 
-        # 验证关键库是否安装
-        echo "🔍 Verifying installed packages..."
-        pkg-config --exists gtk+-3.0 && echo "✅ GTK3 found" || echo "❌ GTK3 missing"
-        pkg-config --exists webkit2gtk-4.0 && echo "✅ WebKit2GTK found" || echo "❌ WebKit2GTK missing"
+        # 验证关键库是否安装 (仅对 x86_64)
+        if [ "${{ matrix.target }}" = "x86_64-unknown-linux-gnu" ]; then
+          echo "🔍 Verifying installed packages..."
+          pkg-config --exists gtk+-3.0 && echo "✅ GTK3 found" || echo "❌ GTK3 missing"
+          pkg-config --exists webkit2gtk-4.0 && echo "✅ WebKit2GTK found" || echo "❌ WebKit2GTK missing"
+        fi
     
     - name: Cache cargo
       uses: actions/cache@v4
@@ -288,6 +329,24 @@ jobs:
 
         # 执行构建
         set -e  # Exit on any error
+
+        # 特殊处理 ARM64 架构
+        if [[ "${{ matrix.target }}" == *"aarch64"* ]]; then
+          echo "🔧 Building for ARM64 architecture..."
+
+          # 对于 ARM64 Windows，可能需要特殊处理
+          if [ "${{ matrix.target }}" = "aarch64-pc-windows-msvc" ]; then
+            echo "⚠️  ARM64 Windows build may have limitations"
+          fi
+
+          # 对于 ARM64 Linux，使用交叉编译
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            echo "🔧 Setting up cross-compilation for ARM64 Linux..."
+            export PKG_CONFIG_ALLOW_CROSS=1
+            export PKG_CONFIG_PATH=""
+          fi
+        fi
+
         cargo tauri build --target ${{ matrix.target }} --verbose
 
         echo "✅ Tauri build completed"
@@ -388,13 +447,14 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs-${{ matrix.os }}-${{ matrix.target }}
+        name: build-logs-${{ matrix.platform }}
         path: |
           apps/shell/target/${{ matrix.target }}/release/build/
           ~/.cargo/registry/cache/
           apps/shell/Cargo.lock
           apps/shell/target/${{ matrix.target }}/release/deps/
         retention-days: 7
+        if-no-files-found: ignore
     
     - name: Generate changelog
       id: changelog
@@ -420,3 +480,36 @@ jobs:
         files: |
           apps/shell/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
           apps/shell/target/${{ matrix.target }}/release/bundle/**/*
+
+    - name: Rename artifacts with platform info
+      if: success()
+      run: |
+        cd apps/shell/target/${{ matrix.target }}/release/
+
+        # 重命名主执行文件
+        if [ -f "${{ matrix.artifact_name }}" ]; then
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            mv "${{ matrix.artifact_name }}" "kkape-gearbox-${{ matrix.platform }}.exe"
+          else
+            mv "${{ matrix.artifact_name }}" "kkape-gearbox-${{ matrix.platform }}"
+          fi
+          echo "✅ Renamed executable to include platform info"
+        fi
+
+        # 重命名 bundle 文件
+        if [ -d "bundle" ]; then
+          echo "📦 Available bundle files:"
+          find bundle -type f -name "*" | head -10
+
+          # 根据平台重命名安装包
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            find bundle -name "*.msi" -exec mv {} "kkape-gearbox-${{ matrix.platform }}.msi" \; 2>/dev/null || true
+            find bundle -name "*.exe" -exec mv {} "kkape-gearbox-${{ matrix.platform }}-installer.exe" \; 2>/dev/null || true
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            find bundle -name "*.dmg" -exec mv {} "kkape-gearbox-${{ matrix.platform }}.dmg" \; 2>/dev/null || true
+            find bundle -name "*.app" -exec mv {} "kkape-gearbox-${{ matrix.platform }}.app" \; 2>/dev/null || true
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            find bundle -name "*.deb" -exec mv {} "kkape-gearbox-${{ matrix.platform }}.deb" \; 2>/dev/null || true
+            find bundle -name "*.AppImage" -exec mv {} "kkape-gearbox-${{ matrix.platform }}.AppImage" \; 2>/dev/null || true
+          fi
+        fi
